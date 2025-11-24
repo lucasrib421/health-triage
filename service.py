@@ -2,16 +2,30 @@ from transformers import pipeline
 
 class TriageService:
     def __init__(self):
-        # O modelo facebook/bart-large-mnli é excelente para zero-shot
-        print("Carregando modelo... aguarde.")
-        self.classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+        print("Carregando modelo multilíngue... aguarde.")
+        # O modelo abaixo é MUITO melhor para português
+        self.classifier = pipeline(
+            "zero-shot-classification", 
+            model="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
+        )
 
     def classify_symptom(self, text):
-        # Definimos as classes possíveis (labels)
-        candidate_labels = ["Emergência Médica", "Agendamento de Consulta", "Dúvida Geral", "Farmácia/Medicamentos"]
+        # Labels mais descritivas ajudam o modelo a entender o contexto
+        candidate_labels = [
+            "Emergência Médica Grave (Risco de Vida)",
+            "Agendamento de Consulta Eletiva",
+            "Dúvidas Administrativas ou Gerais",
+            "Compra de Medicamentos ou Farmácia"
+        ]
         
-        # O modelo faz a mágica
-        result = self.classifier(text, candidate_labels, multi_label=False)
+        # Hipótese em português (O Pulo do Gato!)
+        # Por padrão ele usa "This example is...". Vamos forçar o português.
+        result = self.classifier(
+            text, 
+            candidate_labels, 
+            multi_label=False,
+            hypothesis_template="Este texto é sobre {}."
+        )
         
         return {
             "sintoma": text,
