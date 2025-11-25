@@ -2,62 +2,122 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
-![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-red)
-![HuggingFace](https://img.shields.io/badge/AI-Hugging%20Face-yellow)
+![Docker](https://img.shields.io/badge/Docker-Container-2496ED)
+![Tests](https://img.shields.io/badge/Pytest-Passing-brightgreen)
+![HuggingFace](https://img.shields.io/badge/AI-mDeBERTa-yellow)
 
 ## 📋 Sobre o Projeto
 
-O **HealthTriage** é uma prova de conceito (PoC) de um sistema de triagem inteligente para a área da saúde. O objetivo é utilizar Processamento de Linguagem Natural (NLP) para classificar automaticamente a urgência e a categoria de sintomas descritos por pacientes.
+O **HealthTriage** é uma prova de conceito (PoC) de um sistema de triagem inteligente. O objetivo é utilizar Processamento de Linguagem Natural (NLP) para classificar automaticamente a urgência e a categoria de sintomas descritos por pacientes em linguagem natural.
 
-O sistema resolve o problema do "Cold Start" (falta de dados históricos para treinamento) utilizando modelos de **Zero-Shot Classification** do Hugging Face.
+### 💡 Diferenciais de Engenharia
+1.  **Zero-Shot Learning:** Resolve o problema do "Cold Start" (falta de dados históricos) utilizando inferência sem treinamento prévio.
+2.  **Multilíngue:** Utiliza o modelo `mDeBERTa-v3` otimizado para compreender nuances do português brasileiro (gírias, erros gramaticais).
+3.  **Arquitetura de Microsserviços:** Backend e Frontend desacoplados.
 
-### 🎯 Contexto de Negócio e Engenharia
-Embora aplicado à saúde, este projeto demonstra uma arquitetura escalável para **classificação de tickets e suporte ao cliente**.
+### 🎯 Contexto de Negócio
+Embora aplicado à saúde, esta arquitetura é replicável para **classificação de tickets de suporte (Customer Service)**, triagem de reviews ou moderação de conteúdo — cenários comuns em plataformas de delivery e e-commerce.
 
-## 🚀 Tecnologias Utilizadas
-
-* **Modelo de IA:** `facebook/bart-large-mnli` (via Hugging Face Transformers) para classificação Zero-Shot.
-* **Backend:** FastAPI (alta performance e validação de dados automática).
-* **Frontend:** Streamlit (interface amigável para validação do usuário).
-* **Linguagem:** Python.
+---
 
 ## 🏗️ Arquitetura
 
-O projeto segue uma arquitetura desacoplada:
+O projeto utiliza uma arquitetura containerizada para garantir reprodutibilidade.
 
-1.  **API de Inferência:** Um serviço REST que recebe texto e retorna probabilidades.
-2.  **Interface de Usuário:** Uma aplicação web que consome a API.
+```mermaid
+graph LR
+    A[Usuário] -->|Interage| B(Frontend - Streamlit)
+    B -->|Envia Sintoma (JSON)| C{API - FastAPI}
+    subgraph Docker Container
+        C
+        D[Modelo Hugging Face<br/>mDeBERTa-v3]
+    end
+    C <-->|Inferência| D
+    C -->|Retorna Classificação| B
+```
+
+## 🚀 Tecnologias
+IA/NLP: MoritzLaurer/mDeBERTa-v3-base-mnli-xnli (Hugging Face).
+
+Backend: FastAPI (Alta performance, validação Pydantic).
+
+Frontend: Streamlit (Prototipagem rápida).
+
+Infraestrutura: Docker.
+
+Qualidade: Pytest (Testes de Integração).
 
 ## 📦 Como Rodar o Projeto
 
-### Pré-requisitos
-* Python 3.9 ou superior.
-* Git.
+Você pode rodar o projeto de duas formas: Docker (Recomendado) ou Manualmente.
 
-### Passo a Passo
+1. Via Docker 🐳 (Recomendado)
 
-1. **Clone o repositório:**
-   ```bash
-   git clone [https://github.com/lucasrib421/health-triage.git]
-   cd health-triage
+Garanta que o ambiente seja idêntico ao de produção.
 
-2. **Crie um ambiente virtual e instale as dependências:**
-# Windows
-python -m venv venv
-.\venv\Scripts\activate
+Clone o repositório:
 
-# Linux/Mac
-python3 -m venv venv
-source venv/bin/activate
+```bash
+git clone [https://github.com/lucasrib421/health-triage.git](https://github.com/lucasrib421/health-triage.git)
+cd health-triage
+```
 
-pip install -r requirements.txt
+2. Construa a Imagem:
 
-3. **Inicie a API (Backend): Abra um terminal e rode:**
+```bash
+docker build -t health-triage-api .
+```
 
-uvicorn main:app --reload
+3. Rode o Container (Backend):
 
-A API estará rodando em: http://127.0.0.1:8000
+```bash
+docker run -d -p 8000:8000 health-triage-api
+```
+4. Inicie o Frontend: Em um terminal local (fora do Docker):
 
-4. **Inicie o Frontend: Abra outro terminal (com o venv ativado) e rode:**
-
+```bash
+pip install streamlit requests
 streamlit run app.py
+```
+### Opção 2: Instalação Manual 🛠️
+
+1. Crie o ambiente virtual:
+
+```bash
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+```
+2. Instale as dependências:
+```bash
+pip install -r requirements.txt
+```
+3. Rode a API:
+
+```bash
+uvicorn main:app --reload
+```
+4. Rode o Frontend (em outro terminal):
+
+```bash
+streamlit run app.py
+```
+## ✅ Testes Automatizados
+Para garantir a integridade da API e o contrato de dados, execute os testes de integração:
+```bash
+pytest
+```
+O teste verifica endpoints, validação de tipos e códigos de status HTTP.
+
+## 📂 Estrutura de Arquivos
+
+health-triage/
+├── Dockerfile           # Receita para criar o container da API
+├── app.py               # Interface do Usuário (Streamlit)
+├── main.py              # Rotas da API (FastAPI)
+├── service.py           # Lógica de IA e download do Modelo
+├── requirements.txt     # Dependências do projeto
+├── test_core.py         # Testes automatizados
+└── README.md            # Documentação
