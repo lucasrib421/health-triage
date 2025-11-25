@@ -27,7 +27,7 @@ O projeto utiliza uma arquitetura containerizada para garantir reprodutibilidade
 ```mermaid
 graph LR
     A[Usuário] -->|Interage| B(Frontend - Streamlit)
-    B -->|Envia Sintoma (JSON)| C{API - FastAPI}
+    B -->|Envia JSON| C[API - FastAPI]
     subgraph Docker Container
         C
         D[Modelo Hugging Face<br/>mDeBERTa-v3]
